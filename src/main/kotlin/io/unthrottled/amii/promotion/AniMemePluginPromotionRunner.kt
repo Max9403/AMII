@@ -3,10 +3,8 @@ package io.unthrottled.amii.promotion
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.wm.WindowManager
-import com.intellij.util.concurrency.EdtScheduledExecutorService
 import io.unthrottled.amii.tools.doOrElse
 import io.unthrottled.amii.tools.toOptional
-import java.util.concurrent.TimeUnit
 
 enum class PromotionStatus {
   ACCEPTED, REJECTED, BLOCKED, ERROR
@@ -54,36 +52,28 @@ object AniMemePluginPromotion {
       // download assets on non-awt thread
       val promotionAssets = PromotionAssets(isNewUser, promotionDefinition)
 
-      // schedule code execution to run on the EDT thread
-      // so we can suggest a window
-      EdtScheduledExecutorService.getInstance().schedule(
-        {
-          ProjectManager.getInstance().openProjects
-            .toOptional()
-            .filter { it.isNotEmpty() }
-            .map { it.first() }
-            .map {
-              WindowManager.getInstance().suggestParentWindow(
-                it
-              )
-            }
-            .doOrElse(
-              {
-                ApplicationManager.getApplication().invokeLater {
-                  AniMemePromotionDialog(
-                    promotionAssets,
-                    promotionDefinition,
-                    it!!,
-                    onPromotion
-                  ).show()
-                }
-              },
-              onReject
+      ApplicationManager.getApplication().invokeLater {
+        ProjectManager.getInstance().openProjects
+          .toOptional()
+          .filter { it.isNotEmpty() }
+          .map { it.first() }
+          .map {
+            WindowManager.getInstance().suggestParentWindow(
+              it
             )
-        },
-        0,
-        TimeUnit.SECONDS
-      )
+          }
+          .doOrElse(
+            {
+              AniMemePromotionDialog(
+                promotionAssets,
+                promotionDefinition,
+                it!!,
+                onPromotion
+              ).show()
+            },
+            onReject
+          )
+      }
     }
   }
 }

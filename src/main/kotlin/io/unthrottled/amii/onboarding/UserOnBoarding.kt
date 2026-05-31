@@ -22,13 +22,13 @@ object UserOnBoarding {
         .syncPublisher(UpdateAssetsListener.TOPIC)
         .onRequestedUpdate()
       StartupManager.getInstance(project)
-        .runWhenProjectIsInitialized {
+        .runAfterOpened {
           UpdateNotification.display(project, newVersion)
         }
     }
 
     val isNewUser = Config.instance.userId.isEmpty()
-    StartupManager.getInstance(project).runWhenProjectIsInitialized {
+    StartupManager.getInstance(project).runAfterOpened {
       getVersion().ifPresent { version ->
         PromotionManager.registerPromotion(version, isNewUser = isNewUser)
       }

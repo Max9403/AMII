@@ -1,6 +1,5 @@
 package io.unthrottled.amii.memes
 
-import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.IconManager
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IconUtil
@@ -22,7 +21,7 @@ object Shadow {
   val TopRight = load("/icons/shadow/topRight.svg")
 
   private fun load(path: String): Icon {
-    return IconManager.getInstance().getIcon(path, Shadow::class.java)
+    return IconManager.getInstance().getIcon(path, Shadow::class.java.classLoader)
   }
 }
 
@@ -127,8 +126,7 @@ object ShadowPainter {
       }
     }
     if (iconLineLength < lineLengthNeeded) {
-      val iconSnapshot = IconLoader.getIconSnapshot(icon)
-      val image = IconUtil.toImage(iconSnapshot, ScaleContext.create(component))
+      val image = IconUtil.toImage(icon, ScaleContext.create(component))
       if (horizontal) {
         StartupUiUtil.drawImage(
           g,
@@ -137,13 +135,13 @@ object ShadowPainter {
             lastValue,
             lineStartingPoint,
             lineLengthNeeded - iconLineLength,
-            iconSnapshot.iconHeight
+            icon.iconHeight
           ),
           Rectangle(
             0,
             0,
             lineLengthNeeded - iconLineLength,
-            iconSnapshot.iconHeight
+            icon.iconHeight
           ),
           component
         )
@@ -154,13 +152,13 @@ object ShadowPainter {
           Rectangle(
             lineStartingPoint,
             lastValue + shadowIconWidth,
-            iconSnapshot.iconWidth,
+            icon.iconWidth,
             lineLengthNeeded - iconLineLength
           ),
           Rectangle(
             0,
             0,
-            iconSnapshot.iconWidth,
+            icon.iconWidth,
             lineLengthNeeded - iconLineLength
           ),
           component

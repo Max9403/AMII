@@ -12,7 +12,7 @@ object WelcomeService {
 
   fun greetUser(project: Project) {
     StartupManager.getInstance(project)
-      .runWhenProjectIsInitialized {
+      .runAfterOpened {
         project.messageBus
           .syncPublisher(EVENT_TOPIC)
           .onDispatch(

@@ -2,9 +2,10 @@ package io.unthrottled.amii.promotion
 
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.installAndEnable
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DoNotAskOption
-import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.installAndEnable
+
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import io.unthrottled.amii.onboarding.UpdateNotification
@@ -93,23 +94,19 @@ class AniMemePromotionDialog(
           close(INSTALLED_EXIT_CODE, true)
         }
         runSafely({
-          installAndEnable(pluginIds, onSuccess)
+          installAndEnable(
+            project = null,
+            pluginIds = pluginIds,
+            showDialog = true,
+            onSuccess = onSuccess
+          )
         }) { installError ->
-          logger().warn("Unable to install and enable, trying hax", installError)
-          runSafely({
-            val pluginAdvertiser =
-              Class.forName("com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser")
-            val installAndEnable = pluginAdvertiser.declaredMethods
-              .first { it.name == "installAndEnable" && it.parameterCount == 1 }
-            installAndEnable?.invoke(null, pluginIds, onSuccess)
-          }) {
-            logger().warn("Unable to try hax with install and enable", it)
-            UpdateNotification.sendMessage(
-              PluginMessageBundle.message("promotion.unable.to.install.title"),
-              PluginMessageBundle.message("promotion.unable.to.install.message")
-            )
-            close(ERROR_EXIT_CODE, false)
-          }
+          logger().warn("Unable to install and enable", installError)
+          UpdateNotification.sendMessage(
+            PluginMessageBundle.message("promotion.unable.to.install.title"),
+            PluginMessageBundle.message("promotion.unable.to.install.message")
+          )
+          close(ERROR_EXIT_CODE, false)
         }
       }
     }

@@ -2,6 +2,8 @@ package io.unthrottled.amii.tools
 
 import com.intellij.openapi.Disposable
 import com.intellij.util.Alarm
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.LinkedList
 
 fun interface Debouncer {
@@ -18,7 +20,7 @@ class AlarmDebouncer<T>(
   Debouncer,
   BufferedDebouncer<T>,
   Disposable {
-  private val alarm: Alarm = Alarm()
+  private val alarm: Alarm = Alarm(CoroutineScope(Dispatchers.Default), Alarm.ThreadToUse.POOLED_THREAD)
 
   override fun debounce(toDebounce: () -> Unit) {
     performDebounce({

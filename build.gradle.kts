@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   id("java") // Java support
@@ -11,7 +12,10 @@ version = providers.gradleProperty("pluginVersion").get()
 
 // Set the JVM language level used to build the project.
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(25)
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_25)
+  }
 }
 
 // Configure project's dependencies
@@ -32,19 +36,25 @@ dependencies {
   implementation("io.sentry:sentry:6.28.0")
   testImplementation("org.assertj:assertj-core:3.25.3")
   testImplementation("io.mockk:mockk:1.13.8")
-  compileOnly(files("lib/instrumented-doki-theme-jetbrains-88.5-1.11.0.jar"))
+  compileOnly(files("lib/instrumented-doki-theme-jetbrains-88.5-1.16.1.jar"))
   testImplementation(libs.junit)
   testImplementation(libs.opentest4j)
 
   // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
   intellijPlatform {
-    create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion"))
+    create(providers.gradleProperty("platformType"), providers.gradleProperty("platformVersion")) {
+      useInstaller = false
+    }
 
     // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
     bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
 
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
-    plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
+    plugins(providers.gradleProperty("platformPlugins").map { it.split(',').filter { it.isNotBlank() } })
+
+    // Dart & Flutter - latest versions for 262
+    plugin("Dart", "502.0.0")
+    plugin("io.flutter", "89.0.0")
 
     testFramework(TestFrameworkType.Platform)
   }
